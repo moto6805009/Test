@@ -41,7 +41,6 @@ jobs:
             libsqlite3-dev \
             zlib1g-dev \
             libjpeg-dev \
-            libandroid-tools-adb \
             libsdl2-dev \
             libsdl2-image-dev \
             libsdl2-mixer-dev \
@@ -51,7 +50,7 @@ jobs:
             libavformat-dev \
             libavcodec-dev \
             libfreetype6-dev \
-            libgstreamer1.0 \
+            libgstreamer1.0-0 \
             libgstreamer1.0-dev \
             libmtdev-dev \
             autoconf \
