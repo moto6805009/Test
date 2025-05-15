@@ -1,42 +1,49 @@
-name: Build APK with Buildozer
+name: Build APK
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.10
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
 
-      - name: Install dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y libncurses5 libstdc++6 zlib1g zlib1g-dev libssl-dev libffi-dev
-          pip install --upgrade pip
-          pip install buildozer cython
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y zip unzip openjdk-17-jdk python3-pip
+        pip install --upgrade pip setuptools wheel Cython buildozer
 
-      - name: Install Android SDK and AIDL
-        run: |
-          sudo apt install -y unzip openjdk-11-jdk
-          wget https://dl.google.com/android/repository/commandlinetools-linux-8512546_latest.zip -O cmdline-tools.zip
-          unzip cmdline-tools.zip
-          mkdir -p $HOME/android-sdk/cmdline-tools
-          mv cmdline-tools $HOME/android-sdk/cmdline-tools/latest
-          yes | $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=$HOME/android-sdk \
-            "platform-tools" "platforms;android-30" "build-tools;30.0.3" "cmdline-tools;latest"
+    - name: Install buildozer requirements
+      run: |
+        sudo apt install -y \
+          git python3 python3-pip build-essential \
+          autoconf automake libtool pkg-config zlib1g-dev \
+          libncurses5 libncurses5-dev libstdc++6 \
+          libffi-dev libssl-dev libsqlite3-dev libjpeg-dev \
+          libandroid-tools adb libgl1-mesa-dev libgles2-mesa-dev
 
-      - name: Build APK
-        run: |
-          export ANDROID_HOME=$HOME/android-sdk
-          export PATH=$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
-          buildozer android debug
+    - name: Initialize buildozer
+      run: |
+        cd $GITHUB_WORKSPACE
+        buildozer init || echo "Already initialized"
+
+    - name: Build APK
+      run: |
+        buildozer -v android debug
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-debug.apk
+        path: bin/*.apk
